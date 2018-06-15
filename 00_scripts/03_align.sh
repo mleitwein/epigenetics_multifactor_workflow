@@ -10,9 +10,9 @@
 #SBATCH --time=20-00:00
 #SBATCH --mem=32000
 
-<<<<<<< HEAD
+
 cd $SLURM_SUBMIT_DIR
-=======
+
 # Import samtools
 
 module load  samtools/1.8
