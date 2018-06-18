@@ -18,11 +18,6 @@ DATA_FOLDER="05_results"
 DATAINPUT="03_trimmed"
 base=__BASE__
 
-#global variables
-GENOME="04_reference/genome_filtered.fa"
-DATA_FOLDER="05_results"
-DATAINPUT="03_trimmed"
-base=__BASE__
 
 
 LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 -o "$DATA_FOLDER"/"$base".mr.sorted_start "$DATAINPUT"/"$base".mr
