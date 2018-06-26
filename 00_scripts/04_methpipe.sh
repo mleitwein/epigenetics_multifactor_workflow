@@ -29,12 +29,8 @@ duplicate-remover -S "$DATA_FOLDER"/"$base".dremove_stat.txt -o "$DATA_FOLDER"/"
 
 rm "$DATA_FOLDER"/"$base".mr.sorted_start
 
-LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 -o "$DATA_FOLDER"/"$base".mr.dremove.sort "$DATA_FOLDER"/"$base".mr.dremove
-
-rm "$DATA_FOLDER"/"$base".mr.dremove
-
 # Compute methylation level
-methcounts -cpg-only -c $GENOME -o "$DATA_FOLDER"/"$base".meth "$DATA_FOLDER"/"$base".mr.dremove.sort
+methcounts -cpg-only -c $GENOME -o "$DATA_FOLDER"/"$base".meth "$DATA_FOLDER"/"$base".mr.dremove
 
 # Compute symmetric CpGs contexts
 symmetric-cpgs -o "$DATA_FOLDER"/"$base"_CpG.meth "$DATA_FOLDER"/"$base".meth
