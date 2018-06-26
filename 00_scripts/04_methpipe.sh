@@ -39,6 +39,6 @@ symmetric-cpgs -o "$DATA_FOLDER"/"$base"_CpG.meth "$DATA_FOLDER"/"$base".meth
 levels -o "$DATA_FOLDER"/"$base".levels "$DATA_FOLDER"/"$base".meth
 
 # Compute conversion rate
-bsrate -c $GENOME -o "$DATA_FOLDER"/"$base".bsrate "$DATA_FOLDER"/"$base".mr.dremove.sort
+bsrate -c $GENOME -o "$DATA_FOLDER"/"$base".bsrate "$DATA_FOLDER"/"$base".mr.dremove
 
 rm "$DATA_FOLDER"/"$base".mr.dremove.sort
