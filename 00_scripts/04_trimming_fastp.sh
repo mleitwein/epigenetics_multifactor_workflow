@@ -34,13 +34,13 @@ OUTPUT="03_trimmed"
 
 # ls *.fastq.gz | awk -F"R" '{print $1}' | uniq > ../03_info_file/names_databrut
 
-ls 02_data/*.fastq.gz | awk -F"R" '{print $1}' | uniq |  while read i
+ls 02_data/*.fastq.gz | perl -pe 's/_R[12]\.fastq\.gz$/_/' | sort -u  |  while read i
 do
-name=$(echo "$i" | cut -d "/" -f 2)
+	name=$(basename "$i")
 
 fastp -i "$i"R1.fastq.gz -I "$i"R2.fastq.gz \
 -o $OUTPUT/"$name"Trimed_fastp_R1.fastq.gz  -O $OUTPUT/"$name"Trimed_fastp_R2.fastq.gz \
 --length_required="$LENGTH" --qualified_quality_phred="$QUAL" --correction --trim_tail1=1 --trim_tail2=1 \
 --json $OUTPUT/"$name" --html $OUTPUT/"$name"  --report_title="$name" 
 
-done 2>&1 | tee 98_log_files/"$TIMESTAMP"_trimmgalore_wgbs.log
+done 2>&1 | tee 98_log_files/"$TIMESTAMP"_trimfastp_wgbs.log
