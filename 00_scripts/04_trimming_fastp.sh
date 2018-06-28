@@ -28,19 +28,26 @@ cp $SCRIPT $LOG_FOLDER/"$TIMESTAMP"_"$NAME"
 #variables
 LENGTH=100
 QUAL=25
-
+DATA="02_data"
 OUTPUT="03_trimmed"
 #base=__BASE__
 
 # ls *.fastq.gz | awk -F"R" '{print $1}' | uniq > ../03_info_file/names_databrut
 
-ls 02_data/*.fastq.gz | perl -pe 's/_R[12]\.fastq\.gz$/_/' | sort -u  |  while read i
+ls $DATA/*.fastq.gz | perl -pe 's/_R[12]\.fastq\.gz$/_/' | sort -u |  while read i
 do
-	name=$(basename "$i")
+name=$(basename "$i")
 
-fastp -i "$i"R1.fastq.gz -I "$i"R2.fastq.gz \
--o $OUTPUT/"$name"Trimed_fastp_R1.fastq.gz  -O $OUTPUT/"$name"Trimed_fastp_R2.fastq.gz \
---length_required="$LENGTH" --qualified_quality_phred="$QUAL" --correction --trim_tail1=1 --trim_tail2=1 \
---json $OUTPUT/"$name" --html $OUTPUT/"$name"  --report_title="$name" 
+  fastp -i "$i"R1.fastq.gz -I "$i"R2.fastq.gz \
+        -o $OUTPUT/"$name"_trimmed_fastp_R1.fastq.gz \
+        -O $OUTPUT/"$name"_trimmed_fastp_R2.fastq.gz  \
+        --length_required="$LENGTH" \
+        --qualified_quality_phred="$QUAL" \
+        --correction \
+        --trim_tail1=1 \
+        --trim_tail2=1 \
+        --json $OUTPUT/"$name" \
+        --html $OUTPUT/"$name"  \
+        --report_title="$name" 
 
-done 2>&1 | tee 98_log_files/"$TIMESTAMP"_trimfastp_wgbs.log
+done 2>&1 | tee 98_log_files/"$TIMESTAMP"_trim_fastp_wgbs.log
