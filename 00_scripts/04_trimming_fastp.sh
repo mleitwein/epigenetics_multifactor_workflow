@@ -39,8 +39,8 @@ do
 name=$(basename "$i")
 
   fastp -i "$i"R1.fastq.gz -I "$i"R2.fastq.gz \
-        -o $OUTPUT/"$name"_trimmed_fastp_R1.fastq.gz \
-        -O $OUTPUT/"$name"_trimmed_fastp_R2.fastq.gz  \
+        -o $OUTPUT/"$name"trimmed_fastp_R1.fastq.gz \
+        -O $OUTPUT/"$name"trimmed_fastp_R2.fastq.gz  \
         --length_required="$LENGTH" \
         --qualified_quality_phred="$QUAL" \
         --correction \
