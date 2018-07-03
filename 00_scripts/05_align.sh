@@ -19,17 +19,19 @@ module load  samtools/1.8
 
 #global variables
 INDEX="04_reference/index_genome.dbindex"
-DATAFOLDER="03_trimmed"
+DATAFOLDER="03_trimmed_rename"
 DATAOUTPUT="05_results"
+SAMPLE="01_info_file/sample_name.txt"
 
-ls 02_data/*.fastq.gz | awk -F"R" '{print $1}' | uniq |  while read i
+cat "$SAMPLE" | while read i  
 do
-name=$(echo "$i" | cut -d "/" -f 2)
 
-zcat "$i"R1.fastq.gz > "$i"R1.fastq
-zcat "$i"R2.fastq.gz > "$i"R2.fastq
+zcat "$DATAFOLDER"/"$i"_R1.fastq.gz > "$DATAFOLDER"/"$i"_R1.fastq
+zcat "$DATAFOLDER"/"$i"_R2.fastq.gz > "$DATAFOLDER"/"$i"_R2.fastq
 
-walt -i $INDEX -m 6 -t 5 -k 10 -N 5000000 -1  "$i"R1.fastq -2 "$i"R2.fastq -o "$DATAOUTPUT"/"$name".mr
+walt -i $INDEX -m 6 -t 5 -k 10 -N 5000000 -1  "$DATAFOLDER"/"$i"_R1.fastq -2 "$DATAFOLDER"/"$i"_R2.fastq -o "$DATAOUTPUT"/"$i".mr
 
+rm "$DATAFOLDER"/"$i"_R*.fastq
 
-rm "$i"R*.fq
+done
+
