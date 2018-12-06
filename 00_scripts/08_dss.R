@@ -1,7 +1,6 @@
-#!/usr/bin/Rscript
+############################ DSS for WGBS #########################################
+###################################################################################
 
-################ DSS script project transgenic coho ############
-####################################################
 ls()
 rm(list=ls())
 ls()
@@ -15,72 +14,90 @@ ls()
 library(DSS)
 
 #set working directory
-setwd("epigenetics_multifactor_workflow/")
+setwd("XXX")
+	
+#Load data ####
+	PATH="05_results"
 
-#Prepare dataset
-trans.1.s<-read.table("05_results/HI.4381.005.Index_5.T-S_1.dss",header=T)
-trans.1.t<-read.table("05_results/HI.4381.007.Index_7.T-T_1.dss",header=T)
-trans.2.s<-read.table("05_results/HI.4381.006.Index_6.T-S_2.dss",header=T)
-trans.2.t<-read.table("05_results/HI.4381.008.Index_8.T-T_2.dss",header=T)
-ntrans.1.s<-read.table("05_results/HI.4381.001.Index_1.NT-S_1.dss",header=T)
-ntrans.1.t<-read.table("05_results/HI.4381.003.Index_3.NT-T_1.dss",header=T)
-ntrans.2.s<-read.table("05_results/HI.4381.002.Index_2.NT-S_2.dss",header=T)
-ntrans.2.t<-read.table("05_results/HI.4381.004.Index_4.NT-T_2.dss",header=T)
+	file_list= list.files(path=PATH, pattern=paste0("F_*[0-9]*.dss"))
+	list.df= lapply(paste0(PATH,"/",file_list), function(x) read.table(x, header=T))
+  
 
-#Make object DSS
-BSobj <- makeBSseqData( list(ntrans.1.s, ntrans.2.s,ntrans.1.t,ntrans.2.t,trans.1.s,trans.2.s,trans.1.t,trans.2.t),c("NTS1","NTS2", "NTT1", "NTT2","TS1","TS2","TT1","TT2"))
-save(BSobj,file="06_statistics/bsobj.dss.rda")
+ #Build DSS object ####
+BSobj <- makeBSseqData(list.df,
+                        file_list)
+                       
+# save R image to reload next time (BSobj is really big)	
+	save.image() 
+	 
+#Make design ####
+info<-read.table("info_samples.txt", header=T)
+design<-info[,3:5]
 
-message("object completed")
 
-#Make design
-Strain = c(rep("NT",4),rep("T",4))
-Env = c(rep("S",2),rep("T",2),rep("S",2),rep("T",2))
-design = data.frame(Strain,Env)
-design
+# Build model ####
 
-# Build model
-DMLfit = DMLfit.multiFactor(BSobj, design=design, formula=~Strain+Env+Strain:Env)
+DMLfit = DMLfit.multiFactor(BSobj, 
+                            design=design, 
+                            formula=~origine+sexe+pisciculture+origine:sexe+origine:pisciculture)
+DMLfit$X
 save(DMLfit,file="06_statistics/dmlfit.dss.rda")
 
-message("model w/ interaction completed")
+### Function DML and DMR depending of factors 
 
-### Strain
-# Testing
-DMLtest.strain = DMLtest.multiFactor(DMLfit, coef=2)
-write.table(DMLtest.strain,file="06_statistics/dss.strain.testing.txt",quote=F)
-save(DMLtest.strain,file="06_statistics/dmltest.strain.dss.rda")
+call_dml_dmr<-function (factor, coef){
 
-#DMR for multiple factor
-DMRtest<-callDMR(DMLtest.strain, p.threshold=0.001, minlen=50, minCG=5, dis.merge=50, pct.sig=0.4)
-write.table(DMRtest,file="06_statistics/dss.strain.dmr.txt",quote=F)
-save(DMRtest,file="06_statistics/dmr.strain.dss.rda")
+  # Testing
+  #smooth model ?
+  DML.test = DMLtest.multiFactor(DMLfit, coef= coef)
+  
+  #save model
+  filename <- paste0("06_statistics/dml.",factor, ".txt")
+  write.table(DML.test, filename, quote = FALSE, col.names=TRUE,row.names=FALSE, sep="\t")
+  save(DML.test,file=paste0("06_statistics/dml.",factor, ".rda"))
+  
+    resOrdered = DML.test[order(DML.test$pvals),]
+    resSig.p = subset(resOrdered, pvals<0.001)
+    dim(resSig.p)
+    resSig.fdr = subset(resOrdered, fdrs<0.1)
+    dim(resSig.fdr)
+  
+  #DMR   
+  DMR.test <- callDMR(DML.test, 
+                      p.threshold=0.01, #0.001
+                      minlen = 100, 
+                      minCG = 10, 
+                      dis.merge = 50, 
+                      pct.sig = 0.4)
+    dim(DMR.test)
+    #save
+    
+    write.table(DMR.test,file=paste0("06_statistics/dmr.",factor, ".txt"),quote=F)
+    save(DMR.test,file=paste0("06_statistics/dmr.",factor, ".rda"))
 
-message("Strain effect completed")
+    
+  #Plot tests stats ####
+    par(mfrow=c(1,2))
+    hist(DML.test$stat, 50, main=paste0("test statistics ", factor), xlab="")
+    hist(DML.test$pvals, 50, main=paste0("P values", factor), xlab="")
+  
+  #Plot DMR ####
+    head(DMR.test)
+    showOneDMR(DMR.test[1,], BSobj)
+}
+    
+### Origine : Hatchery Vs Wild
 
-### Environment
-# Testing
-DMLtest.env = DMLtest.multiFactor(DMLfit, coef=3)
-write.table(DMLtest.env,file="06_statistics/dss.env.testing.txt",quote=F)
-save(DMLtest.env,file="06_statistics/dmltest.env.dss.rda")
+call_dml_dmr("origine", 2)   
+    
+### Sexe : M Vs F #####################
+call_dml_dmr("sexe", 3)
 
-#DMR for multiple factor
-DMRtest<-callDMR(DMLtest.env, p.threshold=0.001, minlen=50, minCG=5, dis.merge=50, pct.sig=0.4)
-write.table(DMRtest,file="06_statistics/dss.env.dmr.txt",quote=F)
-save(DMRtest,file="06_statistics/dmr.env.dss.rda")
+### Pisciculture : conuma Vs Quisnam #####################
+call_dml_dmr("pisciculture", 4)
 
-message("Environment effect completed")
+### interaction : origine: sexe #####################
+call_dml_dmr("interactio_origine_sexe", 5)
 
-### Interaction
-# Testing
-DMLtest.interaction = DMLtest.multiFactor(DMLfit, coef=4)
-write.table(DMLtest.interaction,file="06_statistics/dss.interaction.testing.txt",quote=F)
-save(DMLtest.interaction,file="06_statistics/dmltest.interaction.dss.rda")
-
-#DMR for multiple factor
-DMRtest<-callDMR(DMLtest.interaction, p.threshold=0.001, minlen=50, minCG=5, dis.merge=50, pct.sig=0.4)
-write.table(DMRtest,file="06_statistics/dss.interaction.dmr.txt",quote=F)
-save(DMRtest,file="06_statistics/dmr.interaction.dss.rda")
-
-message("Interaction effect completed")
-message("Data saved .rda for DMR visualization")
+### interaction : origine: pisciculture #####################
+call_dml_dmr("interactio_origine_pisci", 6)
