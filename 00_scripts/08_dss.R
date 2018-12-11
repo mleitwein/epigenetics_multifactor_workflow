@@ -12,6 +12,7 @@ ls()
 
 # Load library
 library(DSS)
+library(data.table)
 
 #set working directory
 setwd("XXX")
@@ -20,7 +21,7 @@ setwd("XXX")
 	PATH="05_results"
 
 	file_list= list.files(path=PATH, pattern=paste0("F_*[0-9]*.dss"))
-	list.df= lapply(paste0(PATH,"/",file_list), function(x) read.table(x, header=T))
+	list.df= lapply(paste0(PATH,"/",file_list), function(x) fread(x, header=T))
   
 
  #Build DSS object ####
