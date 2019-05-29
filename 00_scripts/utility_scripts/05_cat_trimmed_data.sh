@@ -6,7 +6,7 @@
 #SBATCH -p ibismini
 #SBATCH -A ibismini
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=maeva.leitwein.1@ulaval.ca
+#SBATCH --mail-user=your_name@ulaval.ca
 #SBATCH --time=00-10:00
 #SBATCH --mem=5G
 
